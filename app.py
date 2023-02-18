@@ -38,6 +38,7 @@ def index():
 
 # Performs selected dimensionality reduction method (reductionMethod) on uploaded data (data), considering selected parameters (perplexity, selectedCol)
 @app.route("/upload-data", methods=["POST"])
+@cross_origin()
 def data():
     parser = reqparse.RequestParser()
     parser.add_argument('data', type=str)
@@ -81,6 +82,7 @@ def data():
 #       [label, categorization] # 1 if in selected area, 0 if not
 #   ]
 @app.route("/categorize-data", methods=["POST"])
+@cross_origin()
 def categorize():
 
     parser = reqparse.RequestParser()
@@ -145,6 +147,7 @@ def categorize():
 
 # Populate center panel with default projection
 @app.route("/get-default-data", methods=["GET"])
+@cross_origin()
 def defaultData():
     data = json.load(open("./datasets/hp_embedding.json"))
     return data
