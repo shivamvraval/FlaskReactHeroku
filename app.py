@@ -59,7 +59,7 @@ def data():
     if selectedCol != "none":
         colorByCol = df.loc[:,selectedCol]
         df = df.drop(selectedCol, axis=1)
-
+    print('Test1')
     # Check reduction method
     if reductionMethod == "TSNE":
         perplexity = args['perplexity']
@@ -67,6 +67,7 @@ def data():
         X_embedded = TSNE(n_components=2, perplexity=perplexity, verbose=True).fit_transform(df.drop(columns = ['text']).values)
     else:
          X_embedded = umap.UMAP(n_components=2).fit_transform(df.drop(columns = 'text').values)
+    print('Test2')
 
     #Converting the x,y,labels,color into dataframe again
     df_dr = pd.DataFrame(X_embedded,columns=['x', 'y'])
