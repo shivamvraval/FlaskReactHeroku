@@ -2,7 +2,7 @@ from flask.helpers import send_from_directory
 from multiprocessing import reduction
 from flask import Flask, url_for, json
 from flask_cors import CORS,cross_origin #comment this on deployment
-from flask_restful import reqparse
+#from flask_restful import reqparse
 import pandas as pd
 import io
 from sklearn.manifold import TSNE
