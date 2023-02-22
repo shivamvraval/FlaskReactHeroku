@@ -149,6 +149,16 @@ body {
 
 .button-box {
   display:flex;
+  margin-bottom: 0.5em;
+}
+
+.button-box #findSubstring {
+  margin-right: 0.5em;
+}
+
+#explanation {
+  color:#838383;
+  font-weight: 600;
 }
 
 #bookmarkButton {
@@ -167,7 +177,7 @@ body {
 
 .title {
   display:flex;
-  font-size:medium;
+  /* font-size:medium; */
   text-transform: uppercase;
   font-weight:600;
 }
@@ -250,10 +260,15 @@ select {
 
 }
 
-#resetButton {
-  margin-left: 1em;
+.resetButton {
+  margin-left: 0.5em;
 }
 
+
+#promptTextArea {
+  margin-bottom: 0.7em;
+
+}
 
 
 /* svg#positive-cloud, svg#negative-cloud {

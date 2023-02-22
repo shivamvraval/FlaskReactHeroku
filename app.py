@@ -1,6 +1,3 @@
-from flask import Flask
-from flask.helpers import send_from_directory
-from flask_cors import CORS, cross_origin
 from multiprocessing import reduction
 from flask import Flask, send_from_directory, url_for, json
 from flask_cors import CORS #comment this on deployment
@@ -16,11 +13,7 @@ from sklearn.svm import SVC
 import numpy as np
 import heapq
 
-import openai
-
-
-
-app = Flask(__name__, static_url_path='', static_folder='my-app/build')
+app = Flask(__name__, static_url_path='', static_folder='frontend/build')
 CORS(app)
 
 # Serve home route
@@ -28,17 +21,8 @@ CORS(app)
 def home():
     return send_from_directory(app.static_folder, "index.html")
 
-
-@app.route('/api', methods=['GET'])
-@cross_origin()
-def index():
-    return {
-        "tutorial": "Flask React Heroku"
-    }
-
 # Performs selected dimensionality reduction method (reductionMethod) on uploaded data (data), considering selected parameters (perplexity, selectedCol)
 @app.route("/upload-data", methods=["POST"])
-@cross_origin()
 def data():
     parser = reqparse.RequestParser()
     parser.add_argument('data', type=str)
@@ -59,7 +43,7 @@ def data():
     if selectedCol != "none":
         colorByCol = df.loc[:,selectedCol]
         df = df.drop(selectedCol, axis=1)
-    print('Test1')
+
     # Check reduction method
     if reductionMethod == "TSNE":
         perplexity = args['perplexity']
@@ -67,7 +51,6 @@ def data():
         X_embedded = TSNE(n_components=2, perplexity=perplexity, verbose=True).fit_transform(df.drop(columns = ['text']).values)
     else:
          X_embedded = umap.UMAP(n_components=2).fit_transform(df.drop(columns = 'text').values)
-    print('Test2')
 
     #Converting the x,y,labels,color into dataframe again
     df_dr = pd.DataFrame(X_embedded,columns=['x', 'y'])
@@ -83,30 +66,12 @@ def data():
 #       [label, categorization] # 1 if in selected area, 0 if not
 #   ]
 @app.route("/categorize-data", methods=["POST"])
-@cross_origin()
 def categorize():
-
     parser = reqparse.RequestParser()
     parser.add_argument('data', type=str)
-    parser.add_argument('selectedLabels', type=str)
     args = parser.parse_args()
     categorizedPoints = args['data']
-    selected_labels = args['selectedLabels']
 
-    #print(selected_labels)
-    '''gpt_prompt = selected_labels[2:3800]
-    response = openai.Completion.create(
-    engine="text-davinci-002",
-    prompt=gpt_prompt,
-    temperature=0.5,
-    max_tokens=256,
-    top_p=1.0,
-    frequency_penalty=0.0,
-    presence_penalty=0.0
-    )
-
-
-    print(response['choices'][0]['text'])'''
 
     df = pd.DataFrame(literal_eval(categorizedPoints), columns = ['0','1'])
 
@@ -142,13 +107,23 @@ def categorize():
 
     print(df_coefs)
 
-    return df_coefs.to_json(orient="split"), "Hey"#response['choices'][0]['text']
+    return df_coefs.to_json(orient="split")
+
+# GPT-3-powered explanations
+@app.route("/GPT-explanation", methods=["POST"])
+def GPTexplanation():
+    parser = reqparse.RequestParser()
+    parser.add_argument('selectedLabels', type=str)
+    args = parser.parse_args()
+    selected_labels = args['selectedLabels']
+
+    return "nothing yet"
+
 
 
 
 # Populate center panel with default projection
 @app.route("/get-default-data", methods=["GET"])
-@cross_origin()
 def defaultData():
     data = json.load(open("./datasets/hp_embedding.json"))
     return data
