@@ -167,7 +167,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
         .then((response) => {
 
           console.log(response.data);
-          setExplanation(response.data);
+          setExplanation("Explanation: not set up yet");
         })
         .catch((error) => {
           console.log(error);
