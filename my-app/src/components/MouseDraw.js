@@ -126,7 +126,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
           selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
-          setExplanation(response.data);
+          setExplanation("Explanation: yet to set up");
         })
         .catch((error) => {
           console.log(error);
