@@ -13,6 +13,9 @@ import {
 } from "../d3-rendering/projectionManipulationFunctions.js";
 import { InfoTooltip } from "./InfoTooltip.js";
 
+const DEFAULT_PROMPT =
+  "What is the common theme between the selected sentences?";
+
 // Loading animation
 const breatheAnimation = keyframes`
  0% { opacity: 0.6; }
@@ -53,33 +56,34 @@ const LabelSearch = () => {
     <>
       <Form.Group className="mb-3" controlId="findSubstring">
         <div className="title">
-          <p>Find labels</p>
+          <p>find labels</p>
         </div>
-        <Form.Control
-          type="substring"
-          placeholder="enter substring"
-          onChange={handleSubstringChange}
-          onKeyPress={enterSubmit}
-        />
+        <div className="button-box">
+          <Form.Control
+            type="substring"
+            size="sm"
+            placeholder="enter substring"
+            onChange={handleSubstringChange}
+            onKeyPress={enterSubmit}
+          />
+          <Button
+            size="sm"
+            variant="secondary"
+            type="submit"
+            onClick={handleSubmit}
+          >
+            find
+          </Button>
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            className="resetButton"
+            onClick={handleReset}
+          >
+            reset
+          </Button>
+        </div>
       </Form.Group>
-      <div className="button-box">
-        <Button
-          size="sm"
-          variant="secondary"
-          type="submit"
-          onClick={handleSubmit}
-        >
-          Find
-        </Button>
-        <Button
-          size="sm"
-          variant="outline-secondary"
-          id="resetButton"
-          onClick={handleReset}
-        >
-          Reset
-        </Button>
-      </div>
     </>
   );
 };
@@ -90,8 +94,14 @@ export const RightPanel = ({
   pathPoints,
   topWords,
   wordsLoading,
+  prompt,
+  setPrompt,
+  explanation,
+  keyVal,
+  setKeyVal,
 }) => {
   const [selectedItems, setSelectedItems] = useState([]);
+  const [promptValue, setPromptValue] = useState(prompt);
   const associatedWordsExplanation =
     "We run a linear classifier on points in the circled area versus points not in the circled area. We return the top 30 words that are positively and negatively associated with being in the circled area";
 
@@ -194,10 +204,77 @@ export const RightPanel = ({
     }
   }, [selectedPoints, topWords, pathPoints, selectedItems.length]);
 
+  const handleNewPrompt = (e) => {
+    if (promptValue !== "") {
+      setPrompt(promptValue);
+    }
+
+    console.log(promptValue);
+
+    document.querySelector("#promptTextArea").value = "";
+  };
+
+  const handleChangePrompt = (e) => {
+    setPromptValue(e.target.value);
+  };
+
+  const handleChangeKey = (e) => {
+    console.log("setting key value:", e.target.value);
+    setKeyVal(e.target.value);
+  };
+
+  const handleReset = () => {
+    setPrompt(DEFAULT_PROMPT);
+    document.querySelector("#promptTextArea").value = "";
+  };
+
+  console.log("keyval", keyVal);
+
   return (
     <div className="right panel">
       <LabelSearch />
       <hr />
+      <div id="natural-language-explanation">
+        <p className="title">GPT-3-Powered Explanation</p>
+        <Form.Group>
+          <Form.Control
+            className="form-control"
+            size="sm"
+            placeholder={keyVal === "" ? "OpenAI Key" : keyVal}
+            onChange={handleChangeKey}
+          ></Form.Control>
+          <Form.Control
+            className="form-control"
+            id="promptTextArea"
+            size="sm"
+            as="textarea"
+            rows={3}
+            placeholder={"current prompt: " + prompt}
+            onChange={handleChangePrompt}
+          ></Form.Control>
+          <div className="button-box">
+            <Button
+              size="sm"
+              variant="secondary"
+              type="submit"
+              onClick={handleNewPrompt}
+            >
+              change prompt
+            </Button>
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              className="resetButton"
+              onClick={handleReset}
+            >
+              reset
+            </Button>
+          </div>
+        </Form.Group>
+        <p id="explanation">{explanation}</p>
+      </div>
+      <hr />
+
       <div className="title">
         <p>Associated words</p>
         <InfoTooltip text={associatedWordsExplanation} />

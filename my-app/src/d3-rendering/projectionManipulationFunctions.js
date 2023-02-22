@@ -16,8 +16,8 @@ import * as d3 from "d3";
 // Global variables
 let database = {}; // Database of projected points
 let colorMap = {}; // Map of label --> color
-let globalOpacity = 0.8; // Default opacity
-let globalDotSize = 4; // Default dot size
+let globalOpacity = 0.5; // Default opacity
+let globalDotSize = 2; // Default dot size
 
 // Clears SVG in the center panel when new data is uploaded
 function clearSVG() {
@@ -123,8 +123,8 @@ function makeColorMap(data) {
 }
 
 const COLORS = [
-  "#af1d1d",
-  "#21b04a",
+  "#8fd7ff",
+  "#71f5ac",
   "#ff66ff",
   "#F2E600",
   "#f7bf6d",

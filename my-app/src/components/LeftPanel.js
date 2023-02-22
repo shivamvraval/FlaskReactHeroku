@@ -20,7 +20,7 @@ import { faCheckSquare, faSquare } from "@fortawesome/free-solid-svg-icons";
 library.add(faCheckSquare, faSquare);
 
 const localDevURL = "https://arcane-mountain-67340.herokuapp.com/";
-console.log("Hello!!!!!")
+
 const LoadDataCircle = ({ loadingData }) => {
   if (!loadingData) {
     return <div></div>;
