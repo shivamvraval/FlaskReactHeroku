@@ -156,7 +156,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
   // request new explanation when prompt changes
   useEffect(() => {
     console.log("KEY:", keyVal);
-    console.log("changedPrompt:", prompt);
+    console.log("AskGPT:", prompt);
     let { brushedPoints, categorizedPoints, selectedLabels } = checkPoints();
     if (brushedPoints.length > 0) {
       axios
@@ -167,7 +167,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
         .then((response) => {
 
           console.log(response.data);
-          setExplanation("Explanation: not set up yet");
+          setExplanation(response.data);
         })
         .catch((error) => {
           console.log(error);
