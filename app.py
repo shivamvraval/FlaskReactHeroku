@@ -154,7 +154,7 @@ def GPTexplanation():
 # Populate center panel with default projection
 @app.route("/get-default-data", methods=["GET"])
 def defaultData():
-    data = json.load(open("./data.json"))
+    data = json.load(open("data.json"))
     return data
 
 
