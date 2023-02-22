@@ -228,7 +228,7 @@ export const RightPanel = ({
     document.querySelector("#promptTextArea").value = "";
   };
 
-  console.log("keyval", keyVal);
+  
 
   return (
     <div className="right panel">
@@ -249,7 +249,7 @@ export const RightPanel = ({
             size="sm"
             as="textarea"
             rows={3}
-            placeholder={"current prompt: " + prompt}
+            placeholder={"Prompt: " + prompt}
             onChange={handleChangePrompt}
           ></Form.Control>
           <div className="button-box">
@@ -259,7 +259,7 @@ export const RightPanel = ({
               type="submit"
               onClick={handleNewPrompt}
             >
-              change prompt
+              AskGPT
             </Button>
             <Button
               size="sm"
