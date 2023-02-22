@@ -24,6 +24,7 @@ def home():
 # Performs selected dimensionality reduction method (reductionMethod) on uploaded data (data), considering selected parameters (perplexity, selectedCol)
 @app.route("/upload-data", methods=["POST"])
 def data():
+    print('Here1')
     parser = reqparse.RequestParser()
     parser.add_argument('data', type=str)
     parser.add_argument('reductionMethod', type=str)
@@ -35,6 +36,7 @@ def data():
     data = args['data']
     reductionMethod = args['reductionMethod']
     selectedCol = args['selectedCol']
+    print('Here2')
 
     #df has text as metadata and other features
     df = pd.read_csv(io.StringIO(data),sep=",", header=0)
@@ -52,11 +54,17 @@ def data():
     else:
          X_embedded = umap.UMAP(n_components=2).fit_transform(df.drop(columns = 'text').values)
 
+
+    print('Here3')
+
     #Converting the x,y,labels,color into dataframe again
     df_dr = pd.DataFrame(X_embedded,columns=['x', 'y'])
     df_dr['label'] = df['text']
     if selectedCol != "none":
         df_dr['color'] = colorByCol
+
+    print('Here4')
+
 
     return df_dr.to_json(orient="split")
 
