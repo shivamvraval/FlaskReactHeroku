@@ -12,6 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.svm import SVC
 import numpy as np
 import heapq
+import openai
 
 app = Flask(__name__, static_url_path='', static_folder='my-app/build')
 CORS(app)
@@ -121,11 +122,31 @@ def categorize():
 @app.route("/GPT-explanation", methods=["POST"])
 def GPTexplanation():
     parser = reqparse.RequestParser()
+    parser.add_argument('apiKey', type=str)
     parser.add_argument('selectedLabels', type=str)
     args = parser.parse_args()
+    key = args['apiKey']
     selected_labels = args['selectedLabels']
 
-    return "nothing yet"
+
+    openai.api_key = key
+
+
+    gpt_prompt = selected_labels[2:3800]
+    response = openai.Completion.create(
+    engine="text-davinci-002",
+    prompt=gpt_prompt,
+    temperature=0.5,
+    max_tokens=256,
+    top_p=1.0,
+    frequency_penalty=0.0,
+    presence_penalty=0.0
+    )
+
+
+    print(response['choices'][0]['text'])
+
+    return response['choices'][0]['text']
 
 
 
