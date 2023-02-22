@@ -165,7 +165,8 @@ export const MouseDraw = ({ x, y, width, height }) => {
           selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
-          console.log("TODO: implement GPT-explanation");
+
+          console.log(response.data);
           setExplanation("Explanation: not set up yet");
         })
         .catch((error) => {
