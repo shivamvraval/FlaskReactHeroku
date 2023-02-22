@@ -13,7 +13,7 @@ from sklearn.svm import SVC
 import numpy as np
 import heapq
 
-app = Flask(__name__, static_url_path='', static_folder='frontend/build')
+app = Flask(__name__, static_url_path='', static_folder='my-app/build')
 CORS(app)
 
 # Serve home route
