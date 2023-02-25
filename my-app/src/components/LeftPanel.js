@@ -44,7 +44,7 @@ const ReductionOptions = ({
   if (reductionMethod === "TSNE") {
     return (
       <div className="sliderBlock">
-        <p>Perlexity</p>
+        <p>Perplexity</p>
         <Slider
           size="small"
           aria-label="perplexity"
@@ -89,7 +89,7 @@ export const LeftPanel = ({ width, height }) => {
   const [rawFile, setRawFile] = useState(); // File that hasn't been projected yet
   const [plottedData, setPlottedData] = useState([]); // Holds data that's currently plotted
   const [projectedFileData, setProjectedFileData] = useState([]); // Holds previously projected data that's being uploaded
-  const [opacity, setOpacity] = useState(50);
+  const [opacity, setOpacity] = useState(90);
   const [dotSize, setDotSize] = useState(2);
   const [reductionMethod, setReductionMethod] = useState("none");
   const [perplexity, setPerplexity] = useState(50);
@@ -359,7 +359,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFileProject(e);
           }}
         >
-          project
+          Load
         </Button>
         <LoadDataCircle loadingData={loadingData} />
       </div>
@@ -367,7 +367,7 @@ export const LeftPanel = ({ width, height }) => {
       <hr />
       {/* Use previously cached projection */}
       <div className="title">
-        <p>See a Bookmarked Projection</p>
+        <p>Quickload Projection</p>
         <InfoTooltip text={previousProjectionExplanation} />
       </div>
       <Form.Group controlId="previousProjectionFile" className="mb-3">
@@ -388,7 +388,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFilePlot(e);
           }}
         >
-          project
+          Load
         </Button>
         <Button
           size="sm"
@@ -398,7 +398,7 @@ export const LeftPanel = ({ width, height }) => {
             handleProjectionSave(e);
           }}
         >
-          bookmark projection
+          Download
         </Button>
       </div>
       <hr />
