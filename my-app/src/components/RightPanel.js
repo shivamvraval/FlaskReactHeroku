@@ -56,7 +56,7 @@ const LabelSearch = () => {
     <>
       <Form.Group className="mb-3" controlId="findSubstring">
         <div className="title">
-          <p>find labels</p>
+          <p>Search</p>
         </div>
         <div className="button-box">
           <Form.Control
@@ -235,7 +235,7 @@ export const RightPanel = ({
       <LabelSearch />
       <hr />
       <div id="natural-language-explanation">
-        <p className="title">GPT-3-Powered Explanation</p>
+        <p className="title">GPT-3 Explainer</p>
         <Form.Group>
           <Form.Control
             className="form-control"
@@ -276,12 +276,12 @@ export const RightPanel = ({
       <hr />
 
       <div className="title">
-        <p>Associated words</p>
+        <p>Most Frequent words</p>
         <InfoTooltip text={associatedWordsExplanation} />
       </div>
       <div id="cloud-div">
         <div id="positive-cloud-div">
-          <p>Inside</p>
+          <p>Inside selection</p>
           {wordsLoading ? (
             <PlaceholderImage
               src="https://storage.googleapis.com/htw-website-uploads/Grey-placeholder-image2.jpg"
@@ -291,7 +291,7 @@ export const RightPanel = ({
           ) : null}
         </div>
         <div id="negative-cloud-div">
-          <p>Outside</p>
+          <p>Outside Selection</p>
           {wordsLoading ? (
             <PlaceholderImage
               src="https://storage.googleapis.com/htw-website-uploads/Grey-placeholder-image2.jpg"

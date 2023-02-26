@@ -134,7 +134,7 @@ export const LeftPanel = ({ width, height }) => {
   const uploadExplanation =
     "Upload a CSV with columns corresponding to embedding dimensions and a column titled 'label' that contains the token names. To color the points using categorical information, include that column in the CSV and select it in the color selection dropdown below.";
   const previousProjectionExplanation =
-    "Here, you can upload JSON files saved using the 'bookmark projection' button below";
+    "QuickLoad a previously generated projection. Save the current projection view with \"Download\" ";
 
   // File reader
   const fileReader = new FileReader();
@@ -359,7 +359,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFileProject(e);
           }}
         >
-          project
+          Load
         </Button>
         <LoadDataCircle loadingData={loadingData} />
       </div>
@@ -367,7 +367,7 @@ export const LeftPanel = ({ width, height }) => {
       <hr />
       {/* Use previously cached projection */}
       <div className="title">
-        <p>See a Bookmarked Projection</p>
+        <p>QuickLoad Projections</p>
         <InfoTooltip text={previousProjectionExplanation} />
       </div>
       <Form.Group controlId="previousProjectionFile" className="mb-3">
@@ -388,7 +388,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFilePlot(e);
           }}
         >
-          project
+          Project
         </Button>
         <Button
           size="sm"
@@ -398,7 +398,7 @@ export const LeftPanel = ({ width, height }) => {
             handleProjectionSave(e);
           }}
         >
-          bookmark projection
+          Download Current View
         </Button>
       </div>
       <hr />
