@@ -16,6 +16,8 @@ import { InfoTooltip } from "./InfoTooltip.js";
 const DEFAULT_PROMPT =
   "What is the common theme between the selected sentences?";
 
+
+
 // Loading animation
 const breatheAnimation = keyframes`
  0% { opacity: 0.6; }
@@ -80,7 +82,7 @@ const LabelSearch = () => {
             className="resetButton"
             onClick={handleReset}
           >
-            reset
+            Reset
           </Button>
         </div>
       </Form.Group>
@@ -259,7 +261,7 @@ export const RightPanel = ({
               type="submit"
               onClick={handleNewPrompt}
             >
-              change prompt
+              Change Prompt
             </Button>
             <Button
               size="sm"
@@ -267,7 +269,7 @@ export const RightPanel = ({
               className="resetButton"
               onClick={handleReset}
             >
-              reset
+              Reset
             </Button>
           </div>
         </Form.Group>

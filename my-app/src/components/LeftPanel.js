@@ -359,7 +359,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFileProject(e);
           }}
         >
-          Load
+          Project
         </Button>
         <LoadDataCircle loadingData={loadingData} />
       </div>
@@ -388,7 +388,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFilePlot(e);
           }}
         >
-          Project
+          Load
         </Button>
         <Button
           size="sm"

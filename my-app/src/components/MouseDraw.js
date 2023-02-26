@@ -71,6 +71,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
 
   const drawingAreaRef = useRef();
 
+  const PRE_PROMPT = "Do not complete the sentences, just answer the following question.\n";
   // When the mouse moves, adds the newest point to the list of points for the current line
   const mouseMove = useCallback(
     function (event) {
@@ -126,7 +127,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
           selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
-          setExplanation("Explanation: yet to set up");
+          setExplanation(response.data);
         })
         .catch((error) => {
           console.log(error);
@@ -162,11 +163,11 @@ export const MouseDraw = ({ x, y, width, height }) => {
       axios
         .post(localDevURL + "GPT-explanation", {
           apiKey: keyVal,
-          selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
+          selectedLabels: JSON.stringify([PRE_PROMPT+prompt, ...selectedLabels]),
         })
         .then((response) => {
           console.log("TODO: implement GPT-explanation");
-          setExplanation("Explanation: not set up yet");
+          setExplanation(response.data);
         })
         .catch((error) => {
           console.log(error);
