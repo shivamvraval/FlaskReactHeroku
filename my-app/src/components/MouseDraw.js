@@ -17,7 +17,7 @@ import { RightPanel } from "./RightPanel.js";
 import axios from "axios";
 import { drawClouds } from "../d3-rendering/cloudFunctions.js";
 
-const localDevURL = "https://arcane-mountain-67340.herokuapp.com/";
+const localDevURL = "http://127.0.0.1:5000/";
 const DEFAULT_PROMPT =
   "What is the common theme between the selected sentences?";
 
@@ -126,8 +126,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
           selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
-          console.log(response.data)
-          setExplanation(response.data);
+          setExplanation("Explanation: yet to set up");
         })
         .catch((error) => {
           console.log(error);
@@ -166,9 +165,8 @@ export const MouseDraw = ({ x, y, width, height }) => {
           selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
-
-          console.log(response.data);
-          setExplanation(response.data);
+          console.log("TODO: implement GPT-explanation");
+          setExplanation("Explanation: not set up yet");
         })
         .catch((error) => {
           console.log(error);

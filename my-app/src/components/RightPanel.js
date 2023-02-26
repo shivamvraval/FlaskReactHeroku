@@ -228,7 +228,7 @@ export const RightPanel = ({
     document.querySelector("#promptTextArea").value = "";
   };
 
-  
+  console.log("keyval", keyVal);
 
   return (
     <div className="right panel">

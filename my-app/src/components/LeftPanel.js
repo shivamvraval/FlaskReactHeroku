@@ -19,7 +19,7 @@ import { faCheckSquare, faSquare } from "@fortawesome/free-solid-svg-icons";
 
 library.add(faCheckSquare, faSquare);
 
-const localDevURL = "https://arcane-mountain-67340.herokuapp.com/";
+const localDevURL = "http://127.0.0.1:5000/";
 
 const LoadDataCircle = ({ loadingData }) => {
   if (!loadingData) {
@@ -44,7 +44,7 @@ const ReductionOptions = ({
   if (reductionMethod === "TSNE") {
     return (
       <div className="sliderBlock">
-        <p>Perplexity</p>
+        <p>Perlexity</p>
         <Slider
           size="small"
           aria-label="perplexity"
@@ -89,7 +89,7 @@ export const LeftPanel = ({ width, height }) => {
   const [rawFile, setRawFile] = useState(); // File that hasn't been projected yet
   const [plottedData, setPlottedData] = useState([]); // Holds data that's currently plotted
   const [projectedFileData, setProjectedFileData] = useState([]); // Holds previously projected data that's being uploaded
-  const [opacity, setOpacity] = useState(90);
+  const [opacity, setOpacity] = useState(50);
   const [dotSize, setDotSize] = useState(2);
   const [reductionMethod, setReductionMethod] = useState("none");
   const [perplexity, setPerplexity] = useState(50);
@@ -359,7 +359,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFileProject(e);
           }}
         >
-          Load
+          project
         </Button>
         <LoadDataCircle loadingData={loadingData} />
       </div>
@@ -367,7 +367,7 @@ export const LeftPanel = ({ width, height }) => {
       <hr />
       {/* Use previously cached projection */}
       <div className="title">
-        <p>Quickload Projection</p>
+        <p>See a Bookmarked Projection</p>
         <InfoTooltip text={previousProjectionExplanation} />
       </div>
       <Form.Group controlId="previousProjectionFile" className="mb-3">
@@ -388,7 +388,7 @@ export const LeftPanel = ({ width, height }) => {
             handleFilePlot(e);
           }}
         >
-          Load
+          project
         </Button>
         <Button
           size="sm"
@@ -398,7 +398,7 @@ export const LeftPanel = ({ width, height }) => {
             handleProjectionSave(e);
           }}
         >
-          Download
+          bookmark projection
         </Button>
       </div>
       <hr />
