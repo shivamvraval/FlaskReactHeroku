@@ -82,14 +82,16 @@ def categorize():
     categorizedPoints = args['data']
 
 
-    df = pd.DataFrame(literal_eval(categorizedPoints), columns = ['0','1'])
+    df = pd.DataFrame(json.loads(categorizedPoints), columns = ['0','1'])
+    #df = pd.DataFrame(literal_eval(categorizedPoints), columns = ['0','1'])
+    print(df.head())
 
     #Make a list of all possible words in the text, currently capped at 100,000
     vectorizer = CountVectorizer(max_features=100000,token_pattern=r"(?u)\b\w\w+\b|!|\?|\"|\'")
-    BOW = vectorizer.fit_transform(df['0'])
+    BOW = vectorizer.fit_transform(df['0'][df['0'].notnull()])
 
     #Fit a linear Classifier
-    x_train,x_test,y_train,y_test = train_test_split(BOW,np.asarray(df['1']))
+    x_train,x_test,y_train,y_test = train_test_split(BOW,np.asarray(df['1'][df['0'].notnull()]))
     model = SVC(kernel='linear')
     model.fit(x_train,y_train)
     coeffs = model.coef_.toarray()
