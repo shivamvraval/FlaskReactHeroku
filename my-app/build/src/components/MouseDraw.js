@@ -18,7 +18,7 @@ import axios from "axios";
 import { drawClouds } from "../d3-rendering/cloudFunctions.js";
 import { json } from "d3";
 
-const localDevURL = "http://127.0.0.1:5000/";
+const localDevURL = "https://cluster-explainer.herokuapp.com/";
 
 // Line element
 const Line = ({ points, drawing }) => {
