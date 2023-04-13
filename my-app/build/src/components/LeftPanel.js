@@ -19,7 +19,7 @@ import { faCheckSquare, faSquare } from "@fortawesome/free-solid-svg-icons";
 
 library.add(faCheckSquare, faSquare);
 
-const localDevURL = "https://cluster-explainer.herokuapp.com/";
+const localDevURL = "http://127.0.0.1:5000/";
 
 const LoadDataCircle = ({ loadingData }) => {
   if (!loadingData) {
