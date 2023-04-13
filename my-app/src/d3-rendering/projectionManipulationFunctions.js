@@ -42,17 +42,19 @@ function drawProjection(width, height, uploadedData) {
     PLOT_X = SVG_X - MARGIN.right - MARGIN.left,
     PLOT_Y = SVG_Y - MARGIN.top - MARGIN.bottom;
 
-  var x = d3.scaleLinear().range([MARGIN.left, PLOT_X]),
+  let x = d3.scaleLinear().range([MARGIN.left, PLOT_X]),
     y = d3.scaleLinear().range([PLOT_Y, MARGIN.top]);
 
-  // SVG
-  var svg = d3.select("#containerSVG");
 
+    
+  // SVG
+  var svg = d3.select("#containerSVG")//.call(d3.zoom().on("zoom", function handleZoom(event) { svg.attr("transform",event.transform) }));
+  //d3.select("#containerSVG").on('mousedown.zoom',null);
   // Re-setting database and colorMap and using uploaded data to draw when data has been loaded
   database = {};
   colorMap = {};
 
-  if (data[0].length === 4) {
+  if (data[0].length === 5) {
     makeColorMap(data);
   }
 
@@ -79,7 +81,7 @@ function drawProjection(width, height, uploadedData) {
     .attr("opacity", globalOpacity)
     .attr("id", (d) => {
       let id = d[d.length - 1];
-      database[id] = { label: d[2] };
+      database[id] = { label: d[2], keyword:d[4]};
       return id;
     })
     .attr("cx", (d) => {
@@ -93,70 +95,101 @@ function drawProjection(width, height, uploadedData) {
       return centerY;
     })
     .attr("fill", (d) => {
-      if (d.length === 5) {
-        return assignColor(d[3], d[4]);
+      if (d.length === 6) {
+        return assignColor(d[3], d[5]);
       } else {
         database[d[d.length - 1]].originalColor = "black";
         return "black";
       }
     })
     .attr("class", "non-brushed");
-
+  colorMap.x = x
+  colorMap.y = y
+  console.log(colorMap,x,y)
   svg.append("g");
   return colorMap;
 }
 
+function drawTestProjection(data) {
+
+  var svg2 = d3.select("#containerSVG")
+  var x = colorMap.x 
+  var y = colorMap.y
+  console.log(x,y)
+  let id = "test_text";
+  // Draw circles
+  svg2
+    .append("g")
+    .selectAll("circle")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("r", 0)
+    .attr("opacity", 1)
+    .attr("id", (d) => {
+      
+      database[id] = { label: d[2], keyword:d[4]};
+      return id;
+    })
+    .attr("cx", (d) => {
+      let centerX = x(+d[0]);
+      database[id].cx = centerX;
+      return centerX;
+    })
+    .attr("cy", (d) => {
+      let centerY = y(+d[1]);
+      database[id].cy = centerY;
+      return centerY;
+    })
+    .attr("fill", 'green')
+    .transition().duration(200).attr("r", 10)
+
+}
+
 function makeColorMap(data) {
   let uniqueCategories = new Set();
+  let uniqueKeywords = new Set();
+
   for (let item of data) {
+    
     if (uniqueCategories.has(item[3])) {
       continue;
     } else {
       uniqueCategories.add(item[3]);
+      uniqueKeywords.add(item[4]);
     }
   }
+  
+
 
   let categoriesArray = Array.from(uniqueCategories);
+  let keywordsArray = Array.from(uniqueKeywords);
+  console.log(categoriesArray ,keywordsArray)
   for (let i = 0; i < categoriesArray.length; i++) {
-    colorMap[categoriesArray[i]] = COLORS[i % 11];
+    colorMap[categoriesArray[i]] = [COLORS[i % 11], keywordsArray[i]]  ;
   }
+  
 }
 
-const COLORS = [
-  "#e41a1c",
-  "#377eb8",
-  "#4daf4a",
-  "#984ea3",
-  "#ff7f00",
-  "#1d414f",
-  "#573121",
-  "#c1078d",
-  "#bebada",
-  "#01bada",
-  "#deb1d3",
-  "#fdb462",
-  "#b3de69",
-  "#fccde5",
-  "#d9d9d9",
-  "#bc80bd",
+const COLORS = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', '#ffffff', '#000000'
 ];
 
 function assignColor(category, id) {
   database[id].category = category;
-  database[id].originalColor = colorMap[category];
-  return colorMap[category];
+  database[id].originalColor = colorMap[category][0];
+  return colorMap[category][0];
 }
 
 // Displays dots based on if the checkbox corresponding to their color is checked
-function toggleDotDisplay(checked, color) {
+function toggleDotDisplay(checked, label) {
   d3.selectAll("circle")
     .filter(function () {
       if (database[d3.select(this).attr("id")]) {
-        return database[d3.select(this).attr("id")].originalColor === color;
+        return database[d3.select(this).attr("id")].category === +label;
       } else {
         return false;
       }
-    })
+    }).transition().duration(200)
     .attr("visibility", function () {
       if (checked) {
         return "visible";
@@ -211,7 +244,8 @@ function checkPoints() {
           let color = database[id].originalColor;
           if (d3.select(elements[i]).attr("class").includes("brushed")) {
             if (Object.entries(colorMap).length > 0) {
-              color = "black";
+              color = "black"; 
+              //color = "red"
             } else {
               color = "orange";
             }
@@ -221,6 +255,7 @@ function checkPoints() {
         });
     } else categorizedPoints.push([idInfo.label, 0]);
   }
+
   return {
     brushedPoints: brushedPoints,
     categorizedPoints: categorizedPoints,
@@ -228,6 +263,37 @@ function checkPoints() {
   };
 }
 
+function autocheckPoints(label) {
+  console.log("in auto checkpoints")
+  let brushedPoints = [];
+  let categorizedPoints = [];
+  let selectedLabels = [];
+  // d3.polygonContains(lassoPolygon, [x, y]);
+
+  for (let [id, idInfo] of Object.entries(database)) {
+    // Ignores point if it's not currently displayed
+    let selector = "#" + id;
+    if (database[id].category === +label) {
+      idInfo.id = id;
+      brushedPoints.push(idInfo);
+      categorizedPoints.push([idInfo.label, 1]);
+      selectedLabels.push(idInfo.label);
+
+      
+      d3.selectAll(selector).transition().duration(200)
+          .attr('r', 3*globalDotSize).attr("opacity", 1)
+      
+    } else {categorizedPoints.push([idInfo.label, 0]);
+      d3.selectAll(selector).transition().duration(200)
+      .attr('r', globalDotSize).attr("opacity", globalOpacity)}
+  }
+
+  return {
+    brushedPoints: brushedPoints,
+    categorizedPoints: categorizedPoints,
+    selectedLabels: selectedLabels,
+  };
+}
 // Reset projection to original state
 function reset() {
   // Remove word clouds
@@ -243,22 +309,22 @@ function reset() {
         return true;
       }
     })
-    .attr("class", "non-brushed")
-    .attr("fill", function () {
-      let color =
-        database[d3.select(this).attr("id")] === undefined
-          ? "black"
-          : database[d3.select(this).attr("id")].originalColor;
-      return color;
-    })
+    .attr("class", "prev-brushed").transition().duration(200)
+    //.attr("fill", function () {
+    //  let color =
+    //    database[d3.select(this).attr("id")] === undefined
+    //      ? "black"
+    //      : database[d3.select(this).attr("id")].originalColor;
+    //  return color;
+    //})
     .attr("r", globalDotSize)
     .attr("opacity", globalOpacity);
 
   // Remove point label
-  d3.selectAll(".pointLabel").remove();
+  d3.selectAll(".pointLabel").transition().duration(200).remove();
 
   // Reset lasso
-  d3.selectAll("#lasso").attr("d", "");
+  d3.selectAll("#lasso").transition().duration(200).attr("d", "");
 }
 
 // Make random id strings
@@ -283,7 +349,7 @@ function changeDotSize(dotSize) {
 
 function highlightLabel(event) {
   // Reset previously highlighted labels
-  d3.selectAll(".brushed")
+  d3.selectAll(".brushed").transition().duration(200)
     .attr("fill", "orange")
     .attr("opacity", globalOpacity)
     .attr("class", "brushed")
@@ -292,11 +358,11 @@ function highlightLabel(event) {
 
   // Highlight labels corresponding to ids
   for (let id of ids) {
-    d3.select("#" + id)
+    d3.select("#" + id).transition().duration(200)
       .attr("fill", "green")
       .attr("class", "brushed selected")
       .attr("opacity", globalOpacity + 0.5)
-      .attr("r", globalDotSize + 2);
+      .attr("r", globalDotSize + 4);
   }
 }
 
@@ -495,7 +561,8 @@ function eraseToolTip(id) {
         case "matches-substring brushed":
           return "orange";
         default:
-          return database[id].originalColor;
+          return database[id].originalColor; //////////******fix if the state is that it is currently selected, then stay black */
+          // return "red"
       }
     })
     .attr("opacity", () => {
@@ -561,7 +628,7 @@ function findMatchingPoints(substring) {
       } else {
         return false;
       }
-    })
+    }).transition().duration(200)
     .attr("fill", function (d) {
       if (COLORFUL) {
         return "black";
@@ -574,12 +641,16 @@ function findMatchingPoints(substring) {
 }
 
 function clearSelectedMatchingPoints() {
-  d3.selectAll(".matches-substring").attr("class", "brushed");
+  d3.selectAll(".matches-substring").transition().duration(200).attr("class", "brushed");
 }
+
+
 
 export {
   drawProjection,
+  drawTestProjection,
   checkPoints,
+  autocheckPoints,
   reset,
   clearSVG,
   changeOpacity,

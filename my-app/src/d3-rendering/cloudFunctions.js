@@ -18,7 +18,7 @@ function drawClouds(words) {
   // d3.select("#neg-placeholder").remove();
 
   var positiveLayout = cloud()
-    .size([180, 300])
+    .size([400, 300])
     .words(
       words.map(function (d) {
         return {
@@ -61,8 +61,10 @@ function drawClouds(words) {
       .style("font-size", function (d) {
         return d.size + "px";
       })
-      .style("font-family", "Helvetica")
-      .style("font-weight", 600)
+      .style("font-family", "Cambria")
+      .style("font-weight", function (d) {
+        {console.log(d.size*25);return d.size*25};
+      })
       .attr("text-anchor", "middle")
       .attr("fill", "green")
       .attr("transform", function (d) {

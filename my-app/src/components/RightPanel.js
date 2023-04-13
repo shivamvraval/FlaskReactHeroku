@@ -4,19 +4,28 @@ import Table from "react-bootstrap/Table";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import styled, { keyframes } from "styled-components";
+import Slider from "@mui/material/Slider";
+import axios from "axios";
+
+
+
+
 import {
   highlightLabel,
   getCentroid,
   findMatchingPoints,
   clearSelectedMatchingPoints,
   reset,
+  drawTestProjection,
 } from "../d3-rendering/projectionManipulationFunctions.js";
 import { InfoTooltip } from "./InfoTooltip.js";
+import { text } from "d3";
+
+
+const localDevURL = "http://127.0.0.1:8000/";
 
 const DEFAULT_PROMPT =
   "What is the common theme between the selected sentences?";
-
-
 
 // Loading animation
 const breatheAnimation = keyframes`
@@ -57,14 +66,12 @@ const LabelSearch = () => {
   return (
     <>
       <Form.Group className="mb-3" controlId="findSubstring">
-        <div className="title">
-          <p>Search</p>
-        </div>
+          
         <div className="button-box">
           <Form.Control
             type="substring"
             size="sm"
-            placeholder="enter substring"
+            placeholder="Enter Keywords"
             onChange={handleSubstringChange}
             onKeyPress={enterSubmit}
           />
@@ -74,7 +81,7 @@ const LabelSearch = () => {
             type="submit"
             onClick={handleSubmit}
           >
-            find
+            Search
           </Button>
           <Button
             size="sm"
@@ -82,7 +89,7 @@ const LabelSearch = () => {
             className="resetButton"
             onClick={handleReset}
           >
-            Reset
+            reset
           </Button>
         </div>
       </Form.Group>
@@ -101,6 +108,11 @@ export const RightPanel = ({
   explanation,
   keyVal,
   setKeyVal,
+  test_text,
+  setTestText,
+  autoClusterLabel,
+  setautoClusterLabel,
+  onautoClusterLabelchange 
 }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [promptValue, setPromptValue] = useState(prompt);
@@ -113,7 +125,14 @@ export const RightPanel = ({
       let labelDict = {};
 
       // Calculates centroid of lassoed area
-      let centroid = getCentroid(pathPoints);
+      console.log(pathPoints,selectedPoints)
+
+      let centroid = {x:0, y:0}
+
+      if (pathPoints.length != 0) {
+        let centroid = getCentroid(pathPoints);
+
+      }
 
       for (let point of selectedPoints) {
         // Creates ids for a table item, if there are multiple of the same label, this allows you to map from the table item to the labels
@@ -220,24 +239,103 @@ export const RightPanel = ({
     setPromptValue(e.target.value);
   };
 
+  
+
+  const handleChangeText = (e) => {
+    setTestText(e.target.value)
+};
+
+const handleTextClick = (e) => {
+  axios
+    .post(localDevURL + "test-projection", {
+      text: test_text,
+    })
+    .then((response) => {
+      drawTestProjection(response.data.data)
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+  
+
   const handleChangeKey = (e) => {
     console.log("setting key value:", e.target.value);
     setKeyVal(e.target.value);
   };
 
+  const handleChangeautoClusterLabel = (e) => {
+    console.log("setting clusterlabel value:", e.target.value);
+    setautoClusterLabel(e.target.value);
+    onautoClusterLabelchange()
+  };
+  
   const handleReset = () => {
     setPrompt(DEFAULT_PROMPT);
     document.querySelector("#promptTextArea").value = "";
   };
 
-  console.log("keyval", keyVal);
 
   return (
     <div className="right panel">
       <LabelSearch />
       <hr />
+      <div id="auto-explanation">
+        <p className="title">AutoCluster Explanation</p>
+        <div className="autoExplanationslider">
+          <Slider
+            aria-label="AutoCluster Label"
+            value={autoClusterLabel}
+            valueLabelDisplay="auto"
+            onChange={handleChangeautoClusterLabel}
+            step={1}
+            marks
+            min={1}
+            max={30}
+          />
+      </div></div>
+      <hr />
+      <div id="new-text">
+      <p className="title">Explanation by Example</p>
+
+      <Form.Control
+            className="form-control"
+            id="TestProjectionArea"
+            size="sm"
+            as="textarea"
+            placeholder={"Enter Text Here to creat new projection point"}
+            onChange={handleChangeText}
+          ></Form.Control>
+      <Button
+            size="sm"
+            variant="secondary"
+            type="submit"
+            onClick={handleTextClick}>
+            Show
+          </Button>
+          </div>
+          <hr />
+
+      <div className="title">
+        <p>Explanation as keywords</p>
+        <InfoTooltip text={associatedWordsExplanation} />
+      </div>
+      <div id="cloud-div">
+        <div id="positive-cloud-div">
+          {wordsLoading ? (
+            <PlaceholderImage
+              src="https://storage.googleapis.com/htw-website-uploads/Grey-placeholder-image2.jpg"
+              className="placeholder-image"
+              id="pos-placeholder"
+            />
+          ) : null}
+        </div>
+      </div>
+      <hr />
+
       <div id="natural-language-explanation">
-        <p className="title">GPT-3 Explainer</p>
+        <p className="title">Explanation by Interaction</p>
         <Form.Group>
           <Form.Control
             className="form-control"
@@ -261,7 +359,7 @@ export const RightPanel = ({
               type="submit"
               onClick={handleNewPrompt}
             >
-              Change Prompt
+              Set Prompt
             </Button>
             <Button
               size="sm"
@@ -273,37 +371,18 @@ export const RightPanel = ({
             </Button>
           </div>
         </Form.Group>
-        <p id="explanation">{explanation}</p>
+        <Form.Control
+            className="form-control"
+            id="explanation"
+            size="sm"
+            as="textarea"
+            rows={3}
+            placeholder={explanation}
+            //onChange={handleChangePrompt}
+          ></Form.Control>
       </div>
       <hr />
 
-      <div className="title">
-        <p>Most Frequent words</p>
-        <InfoTooltip text={associatedWordsExplanation} />
-      </div>
-      <div id="cloud-div">
-        <div id="positive-cloud-div">
-          <p>Inside selection</p>
-          {wordsLoading ? (
-            <PlaceholderImage
-              src="https://storage.googleapis.com/htw-website-uploads/Grey-placeholder-image2.jpg"
-              className="placeholder-image"
-              id="pos-placeholder"
-            />
-          ) : null}
-        </div>
-        <div id="negative-cloud-div">
-          <p>Outside Selection</p>
-          {wordsLoading ? (
-            <PlaceholderImage
-              src="https://storage.googleapis.com/htw-website-uploads/Grey-placeholder-image2.jpg"
-              className="placeholder-image"
-              id="neg-placeholder"
-            />
-          ) : null}
-        </div>
-      </div>
-      <hr />
       <div id="unique-items-div">
         <p className="title">
           {selectedItems.length > 0
@@ -317,7 +396,7 @@ export const RightPanel = ({
           <thead>
             <tr>
               <th>#</th>
-              <th>item</th>
+              <th>Item</th>
             </tr>
           </thead>
           <tbody>{selectedItems}</tbody>

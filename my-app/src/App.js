@@ -11,7 +11,6 @@ function App() {
   let height = window.innerHeight - 50;
   return (
     <div className="App">
-      <Header />
       <div className="body">
         <LeftPanel width={width} height={height} />
         <MouseDraw x={0} y={0} width={width} height={height} />

@@ -1,6 +1,11 @@
+import Container from "react-bootstrap/Container";
+import Navbar from "react-bootstrap/Navbar";
 import "../App.css";
 import { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
+import ToggleButton from 'react-bootstrap/ToggleButton'
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Form from "react-bootstrap/Form";
 import axios from "axios";
 import {
@@ -9,17 +14,21 @@ import {
   changeOpacity,
   changeDotSize,
   toggleDotDisplay,
+  autocheckPoints,
 } from "../d3-rendering/projectionManipulationFunctions.js";
+import Tooltip from '@mui/material/Tooltip';
 import Slider from "@mui/material/Slider";
 import CircularProgress from "@mui/material/CircularProgress";
 import { InfoTooltip } from "./InfoTooltip.js";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckSquare, faSquare } from "@fortawesome/free-solid-svg-icons";
+import neurips from '../datasets/neurips.json';
+
 
 library.add(faCheckSquare, faSquare);
 
-const localDevURL = "https://cluster-explainer.herokuapp.com/";
+const localDevURL = "http://127.0.0.1:8000/";
 
 const LoadDataCircle = ({ loadingData }) => {
   if (!loadingData) {
@@ -27,6 +36,16 @@ const LoadDataCircle = ({ loadingData }) => {
   } else {
     return <CircularProgress />;
   }
+};
+
+const Header = () => {
+  return (
+    <Navbar bg="dark" variant="dark">
+      <Container>
+        <Navbar.Brand href="#home">Cluster Investigator</Navbar.Brand>
+      </Container>
+    </Navbar>
+  );
 };
 
 const ReductionOptions = ({
@@ -66,10 +85,12 @@ const ReductionOptions = ({
 // Item in the category key
 const KeyItem = ({ props }) => {
   const [checked, setChecked] = useState(true);
+  const [checkedlabel, setCheckedLabel] = useState(props.label);
 
   const handleClick = () => {
     setChecked(!checked);
-    toggleDotDisplay(!checked, props.color);
+    toggleDotDisplay(!checked, props.label);
+    autocheckPoints(props.label);
   };
 
   return (
@@ -79,10 +100,17 @@ const KeyItem = ({ props }) => {
         icon={checked ? "check-square" : "square"}
         color={checked ? props.color : "#FAFAFA"}
       />
-      <p>{props.label}</p>
+      <p>{props.label+" : "+props.keywords}</p>
     </div>
   );
 };
+window.onload = function(){
+  document.getElementById('toggleButton1').click();
+  //document.getElementById('toggleButton2').click();
+  document.getElementById('toggleButton3').click();
+
+
+}
 
 // Data upload + control panel
 export const LeftPanel = ({ width, height }) => {
@@ -91,6 +119,8 @@ export const LeftPanel = ({ width, height }) => {
   const [projectedFileData, setProjectedFileData] = useState([]); // Holds previously projected data that's being uploaded
   const [opacity, setOpacity] = useState(50);
   const [dotSize, setDotSize] = useState(2);
+  const [clusterThresholdDist, setclusterThresholdDist] = useState(1);
+  const [clusterMode, setClusterMode] = useState(false)
   const [reductionMethod, setReductionMethod] = useState("none");
   const [perplexity, setPerplexity] = useState(50);
   const [loadingData, setLoadingData] = useState(false);
@@ -103,24 +133,26 @@ export const LeftPanel = ({ width, height }) => {
   const [colorMap, setColorMap] = useState({});
   const [selectedCol, setSelectedCol] = useState("none");
 
+
+  
+
+
   function renderKey() {
     if (colorMap.length > 0) {
       return (
         <>
-          <hr />
           <div className="title">
-            <p>Category Visibility</p>
+            <p>Cluster : Keywords</p>
           </div>
 
           {colorMap.map((info) => {
-            {
-              console.log(info);
-            }
+
             return (
               <KeyItem
                 props={{
                   label: info[0],
-                  color: info[1],
+                  color: info[1][0],
+                  keywords: info[1][1],
                 }}
               />
             );
@@ -132,9 +164,9 @@ export const LeftPanel = ({ width, height }) => {
 
   // Help explanations
   const uploadExplanation =
-    "Upload a CSV with columns corresponding to embedding dimensions and a column titled 'label' that contains the token names. To color the points using categorical information, include that column in the CSV and select it in the color selection dropdown below.";
+    "Upload a CSV with embeddings and metadata to project";
   const previousProjectionExplanation =
-    "QuickLoad a previously generated projection. Save the current projection view with \"Download\" ";
+    "Here, you can upload JSON files saved using the 'bookmark projection' button below";
 
   // File reader
   const fileReader = new FileReader();
@@ -142,21 +174,88 @@ export const LeftPanel = ({ width, height }) => {
   // Set projected file on projected file upload
   const handleProjectedFileChange = (e) => {
     fileReader.onload = function (event) {
+      console.log(JSON.parse(event.target.result))
       setProjectedFileData(JSON.parse(event.target.result));
     };
 
     fileReader.readAsText(e.target.files[0]);
+    
   };
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClickMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+
+  const handleClose = (e,name) => {
+    setAnchorEl(null);
+    let loadedData = neurips
+
+      clearSVG();
+      setPlottedData(loadedData);
+      let newColorMap = drawProjection(width, height, loadedData);
+      setColorMap(Object.entries(newColorMap));
+      let req = {
+        data: JSON.stringify(loadedData),
+      };
+
+      axios //sending data to the backend
+        .post(localDevURL + "quickload", req)
+        .then((response) => {
+         console.log('Done')
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoadingData(false);
+        });  
+    
+    
+
+    //fetch('neurips.json')
+    //.then((response) => response.json())
+    //.then((json) => console.log(json));
+  }
+
+  const toggleDiv = (e, id) => {
+    var x = document.getElementById(id);
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+  }
+
 
   // For plotting previously projected data
   const handleFilePlot = (e) => {
+    console.log("entering")
     // Clears svg and plots new data if there is new data
     if (projectedFileData.length > 0) {
+      console.log("entering2")
+
       clearSVG();
       setPlottedData(projectedFileData);
       let newColorMap = drawProjection(width, height, projectedFileData);
       setColorMap(Object.entries(newColorMap));
+      let req = {
+        data: JSON.stringify(projectedFileData),
+      };
+      console.log(projectedFileData)
+
+      axios //sending data to the backend
+        .post(localDevURL + "quickload", req)
+        .then((response) => {
+         console.log('Done')
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoadingData(false);
+        });
       setProjectedFileData([]);
+
+      
     }
   };
 
@@ -168,6 +267,8 @@ export const LeftPanel = ({ width, height }) => {
     let rows;
     fileReader.onload = function (event) {
       setCsvOutput(event.target.result);
+      console.log(event.target.result)
+
 
       rows = event.target.result.split("\n");
 
@@ -204,6 +305,8 @@ export const LeftPanel = ({ width, height }) => {
     setReductionMethod(e.target.value);
   };
 
+  //cost handleClusterThresholdChange
+
   // Handle file projection
   const handleFileProject = (e) => {
     e.preventDefault();
@@ -215,7 +318,7 @@ export const LeftPanel = ({ width, height }) => {
       let req = {
         data: csvOutput,
         reductionMethod: reductionMethod,
-        selectedCol: selectedCol,
+        selectedCol: selectedCol
       };
 
       // Constructing request based on reduction Method
@@ -223,17 +326,17 @@ export const LeftPanel = ({ width, height }) => {
         req.perplexity = perplexity;
       }
 
-      axios
+      axios //sending data to the backend
         .post(localDevURL + "upload-data", req)
         .then((response) => {
-          console.log("SUCCESS", response.data.data);
+         //console.log("SUCCESS", response.data.data);
           let dataToPlot = response.data.data;
           clearSVG();
           setPlottedData(dataToPlot);
           let newColorMap = drawProjection(width, height, dataToPlot);
           setColorMap(Object.entries(newColorMap));
-          console.log(Object.entries(newColorMap));
           setLoadingData(false);
+          //add something to send the cluster size to backend
         })
         .catch((error) => {
           console.log(error);
@@ -269,7 +372,7 @@ export const LeftPanel = ({ width, height }) => {
   };
 
   useEffect(() => {
-    console.log("changing opacity", opacity / 100);
+    //console.log("changing opacity", opacity / 100);
     changeOpacity(opacity / 100);
   }, [opacity]);
 
@@ -281,9 +384,75 @@ export const LeftPanel = ({ width, height }) => {
   };
 
   useEffect(() => {
-    console.log("changing dot size", dotSize);
+   //console.log("changing dot size", dotSize);
     changeDotSize(dotSize);
   }, [dotSize]);
+
+
+  // Handle cluster threshold distance changes
+  // const handleClusterThresholdDist = (event, newThreshold) => {
+    // if (newThreshold !== clusterThresholdDist) {
+    //   setclusterThresholdDist(newThreshold)
+    // }
+
+    
+  // }
+
+
+  const handleClusterThresholdDist = (event, newThreshold) => {
+    if (newThreshold !== clusterThresholdDist) {
+      setclusterThresholdDist(newThreshold)
+      //console.log(clusterThresholdDist)
+    }
+
+    // Submits post request if there is not a request already being processed
+    // if (clusterMode) {
+
+      let req = {
+        clusterThresholdDist: clusterThresholdDist
+      };
+
+      axios //sending data to the backend
+        .post(localDevURL + "auto-cluster", req)
+        .then((response) => {
+          //console.log("SUCCESS affected new cluster distance");
+          let dataToPlot = response.data.data;
+          clearSVG();
+          setPlottedData(dataToPlot);
+          let newColorMap = drawProjection(width, height, dataToPlot);
+          setColorMap(Object.entries(newColorMap));
+          console.log(Object.entries(newColorMap));
+          setLoadingData(false);
+          //add something to send the cluster size to backend
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoadingData(false);
+        });
+    // };
+    };
+
+  // useEffect(() => {
+  //   console.log("changing cluster threshold dist", clusterThresholdDist);
+  //   let req = {
+  //     clusterThresholdDist: clusterThresholdDist
+  //   };
+
+
+  //   axios
+  //     .post(localDevURL + "turn-on-cluster-mode", req)
+  //     .then((response) => {
+  //       console.log("SUCCESS affected new cluster distance");
+  //       let dataToPlot = response.data.data;
+  //       clearSVG();
+  //       setPlottedData(dataToPlot);
+  //       let newColorMap = drawProjection(width, height, dataToPlot);
+  //       setColorMap(Object.entries(newColorMap));
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // }, [clusterThresholdDist])
 
   // Draw graph ONCE when the component mounts
   useEffect(() => {
@@ -291,7 +460,6 @@ export const LeftPanel = ({ width, height }) => {
     axios
       .get(localDevURL + "get-default-data")
       .then((response) => {
-        console.log("SUCCESS", response.data.data);
         let dataToPlot = response.data.data;
         setPlottedData(dataToPlot);
         let newColorMap = drawProjection(width, height, dataToPlot);
@@ -303,76 +471,74 @@ export const LeftPanel = ({ width, height }) => {
   }, [height, width]);
 
   return (
+    
     <div className="left panel">
-      <div className="title">
-        <p>Upload</p>
-        <InfoTooltip text={uploadExplanation} />
-      </div>
-      {/* File selection */}
-      <Form.Group controlId="formFile" className="mb-3">
-        <Form.Control
-          className="form-control"
-          size="sm"
-          type="file"
-          accept=".csv"
-          onChange={handleRawFileChange}
-        />
-        <Form.Select
-          className="form-select"
-          size="sm"
-          aria-label="column-selection"
-          onChange={handleColChange}
-        >
-          {csvColumns}
-        </Form.Select>
-        <Form.Select
-          className="form-select"
-          size="sm"
-          aria-label="column-selection"
-          onChange={handleReductionMethodChange}
-        >
-          <option key="none" value="none">
-            select a reduction method
-          </option>
-          <option key="TSNE" value="TSNE">
-            T-SNE
-          </option>
-          <option key="UMAP" value="UMAP">
-            UMAP
-          </option>
-        </Form.Select>
-      </Form.Group>
+    <h2>Cluster Explainer</h2>
 
-      {/* TODO: add column selector*/}
-      {/* Dimensionality reduction method selection */}
-      <ReductionOptions
-        reductionMethod={reductionMethod}
-        perplexity={perplexity}
-        perplexityChanger={setPerplexity}
-      />
-      <div className="submitButton">
-        <Button
-          size="sm"
-          id="dataUploadButton"
-          variant="secondary"
-          onClick={(e) => {
-            handleFileProject(e);
-          }}
-        >
-          Project
-        </Button>
-        <LoadDataCircle loadingData={loadingData} />
-      </div>
+      <Tooltip title={uploadExplanation} arrow>
+        <Button  id="toggleButton1" class="btn btn-secondary btn-xs" onClick={(e) => { toggleDiv(e, "upload-div");}}>UPLOAD DATA</Button>
+        </Tooltip>
+      <div id ="upload-div">
+        {/* File selection */}
+        <Form.Group controlId="formFile" className="mb-3">
+              <Form.Control
+                className="form-control input-sm"
+                size="sm"
+                type="file"
+                accept=".csv"
+                onChange={handleRawFileChange}
+              />
+              <Form.Select
+                className="form-select input-sm"
+                size="sm"
+                aria-label="column-selection"
+                onChange={handleColChange}
+              >
+                {csvColumns}
+              </Form.Select>
+              <Form.Select
+                className="form-select input-sm"
+                size="sm"
+                aria-label="column-selection"
+                onChange={handleReductionMethodChange}
+              >
+                <option key="none" value="none">
+                  select a reduction method
+                </option>
+                <option key="TSNE" value="TSNE">
+                  T-SNE
+                </option>
+                <option key="UMAP" value="UMAP">
+                  UMAP
+                </option>
+              </Form.Select>
+        </Form.Group>
 
-      <hr />
-      {/* Use previously cached projection */}
-      <div className="title">
-        <p>QuickLoad Projections</p>
-        <InfoTooltip text={previousProjectionExplanation} />
-      </div>
-      <Form.Group controlId="previousProjectionFile" className="mb-3">
+        {/* TODO: add column selector*/}
+        {/* Dimensionality reduction method selection */}
+        <ReductionOptions
+          reductionMethod={reductionMethod}
+          perplexity={perplexity}
+          perplexityChanger={setPerplexity}
+            />
+        <div className="submitButton">
+              <Button
+                size="sm"
+                id="dataUploadButton"
+                variant="secondary"
+                onClick={(e) => {
+                  handleFileProject(e);
+                }}
+              >
+                Project
+              </Button>
+              <LoadDataCircle loadingData={loadingData} />
+        </div>
+        {/* Use previously cached projection */}
+
+        <Form.Group controlId="previousProjectionFile" className="mb-3">
         <Form.Control
-          className="form-control"
+          className="form-control input-sm"
           size="sm"
           type="file"
           accept=".json"
@@ -398,12 +564,44 @@ export const LeftPanel = ({ width, height }) => {
             handleProjectionSave(e);
           }}
         >
-          Download Current View
+          Download Projection
         </Button>
+        </div>
       </div>
-      <hr />
+      
 
-      <p className="title"> Display settings</p>
+      <Button
+        id="demo-positioned-button"
+        class="btn btn-secondary btn-xs"
+        aria-controls={open ? 'demo-positioned-menu' : undefined}
+        aria-haspopup="true"
+        aria-expanded={open ? 'true' : undefined}
+        onClick={handleClickMenu}
+      >
+        Quick Load
+      </Button>
+      <Menu
+        id="demo-positioned-menu"
+        aria-labelledby="demo-positioned-button"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+      >
+        <MenuItem onClick={(e) => { handleClose(e, "neurips");}}>NeurIPS 2022</MenuItem>
+        <MenuItem onClick={(e) => { handleClose(e, "rlhf");}}>RLHF Dataset</MenuItem>
+        <MenuItem onClick={(e) => { handleClose(e, "vispapers");}}>Vis Paper Abstracts</MenuItem>
+      </Menu>
+
+      <Button  id="toggleButton3" class="btn btn-secondary btn-xs display-btn" onClick={(e) => { toggleDiv(e, "displaysettings-div");}}>DISPLAY SETTINGS</Button>
+      <div id ="displaysettings-div">
       <div className="sliderBlock">
         <p>Opacity</p>
         <Slider
@@ -432,7 +630,36 @@ export const LeftPanel = ({ width, height }) => {
         />
         <p className="paramValue">{dotSize}</p>
       </div>
+      </div>
+      <div>
+      <h3>AutoCluster</h3>
+      </div>
+      <div className="sliderBlock">
+      <p>Few</p><Slider
+            aria-label="AutoCluster Number"
+            valueLabelDisplay="auto"
+            value={clusterThresholdDist}
+            onChange={handleClusterThresholdDist}
+            step={1}
+            marks
+            min={1}
+            max={50}
+          /><p>  Many</p>
+      </div>
+      {/* <div className="submitButton">
+        <Button
+          size="sm"
+          id="changeClusterMode"
+          variant="secondary"
+          onClick={setClusterMode(!clusterMode)}
+        >
+          project
+        </Button>
+      </div> */}
       {renderKey()}
-    </div>
+
+      
+
+      </div>
   );
 };

@@ -8,6 +8,7 @@ import React, {
 import * as d3 from "d3";
 import {
   checkPoints,
+  autocheckPoints,
   reset,
   drawToolTip,
   eraseToolTip,
@@ -17,7 +18,7 @@ import { RightPanel } from "./RightPanel.js";
 import axios from "axios";
 import { drawClouds } from "../d3-rendering/cloudFunctions.js";
 
-const localDevURL = "https://cluster-explainer.herokuapp.com/";
+const localDevURL = "http://127.0.0.1:8000/";
 const DEFAULT_PROMPT =
   "What is the common theme between the selected sentences?";
 
@@ -53,6 +54,8 @@ const Line = ({ points, drawing }) => {
   );
 };
 
+
+
 export const MouseDraw = ({ x, y, width, height }) => {
   // States and state setters
   const [drawing, setDrawing] = useState(false);
@@ -64,14 +67,18 @@ export const MouseDraw = ({ x, y, width, height }) => {
   });
   const [wordsLoading, setWordsLoading] = useState(false);
   const [keyVal, setKeyVal] = useState("");
+  const [test_text, setTestText] = useState("");
+
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [explanation, setExplanation] = useState(
     "Select points to see an explanation"
   );
+  const [autoClusterLabel, setautoClusterLabel] =  useState(false);
+
+
 
   const drawingAreaRef = useRef();
 
-  const PRE_PROMPT = "Do not complete the sentences, just answer the following question.\n";
   // When the mouse moves, adds the newest point to the list of points for the current line
   const mouseMove = useCallback(
     function (event) {
@@ -103,7 +110,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
 
     // Send brushed points to right panel
     setSelectedPoints(brushedPoints);
-
+    
     if (brushedPoints.length > 0) {
       // Send categorized points to back for linear classification
       setWordsLoading(true);
@@ -127,6 +134,7 @@ export const MouseDraw = ({ x, y, width, height }) => {
           selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
+          console.log(response)
           setExplanation(response.data);
         })
         .catch((error) => {
@@ -134,6 +142,49 @@ export const MouseDraw = ({ x, y, width, height }) => {
         });
     }
   }
+
+  function getExplanationClusterLabel(){
+    console.log(autoClusterLabel)
+    setDrawing(false);
+    // Check if points are in path on mouseup
+    let { brushedPoints, categorizedPoints, selectedLabels } = autocheckPoints(autoClusterLabel);
+
+    // Send brushed points to right panel
+    setSelectedPoints(brushedPoints);
+    
+    if (brushedPoints.length > 0) {
+      // Send categorized points to back for linear classification
+      setWordsLoading(true);
+      axios
+        .post(localDevURL + "categorize-data", {
+          data: JSON.stringify(categorizedPoints),
+        })
+        .then((response) => {
+          console.log("Categorized!", response.data.data);
+          let newTopWords = drawClouds(response.data.data);
+          setWordsLoading(false);
+          setTopWords(newTopWords);
+          // TODO: do things with response
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      axios
+        .post(localDevURL + "GPT-explanation", {
+          apiKey: keyVal,
+          selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
+        })
+        .then((response) => {
+          console.log(response)
+          setExplanation(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }
+
+ 
 
   function handleMouseOver(e) {
     if (!drawing && e.target.tagName.toLowerCase() === "circle") {
@@ -154,6 +205,44 @@ export const MouseDraw = ({ x, y, width, height }) => {
     return () => area.on("mousemove", null);
   }, [mouseMove]);
 
+
+// request new explanation when prompt changes
+useEffect(() => {
+  axios
+    .post(localDevURL + "test-projection", {
+      text: test_text,
+    })
+    .then((response) => {
+      console.log(response);
+      // SVG
+      var svg = d3.select("#containerSVG")
+      svg
+        .append("g")
+        .selectAll("circle")
+        .data(response.data.data)
+        .enter()
+        .append("circle")
+        .attr("r", 50)
+        .attr("opacity", 1)
+        .attr("id", 'test-point')
+        .attr("cx", (d) => {
+          let centerX = x(+d[0]);
+          return centerX;
+        })
+        .attr("cy", (d) => {
+          let centerY = y(+d[1]);
+          return centerY;
+        })
+        .attr("fill", "green")
+
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}, [prompt]);
+
+  
+
   // request new explanation when prompt changes
   useEffect(() => {
     console.log("KEY:", keyVal);
@@ -163,10 +252,10 @@ export const MouseDraw = ({ x, y, width, height }) => {
       axios
         .post(localDevURL + "GPT-explanation", {
           apiKey: keyVal,
-          selectedLabels: JSON.stringify([PRE_PROMPT+prompt, ...selectedLabels]),
+          selectedLabels: JSON.stringify([prompt, ...selectedLabels]),
         })
         .then((response) => {
-          console.log("TODO: implement GPT-explanation");
+          console.log(response);
           setExplanation(response.data);
         })
         .catch((error) => {
@@ -174,6 +263,12 @@ export const MouseDraw = ({ x, y, width, height }) => {
         });
     }
   }, [prompt]);
+
+  // request new explanation when label changes
+   useEffect(() => {
+  }, [autoClusterLabel]);
+
+
 
   return (
     <div className="body">
@@ -213,6 +308,11 @@ export const MouseDraw = ({ x, y, width, height }) => {
         explanation={explanation}
         keyVal={keyVal}
         setKeyVal={setKeyVal}
+        test_text = {test_text }
+        setTestText={setTestText}
+        autoClusterLabel={autoClusterLabel}
+        setautoClusterLabel={setautoClusterLabel}
+        onautoClusterLabelchange = {getExplanationClusterLabel}
       />
     </div>
   );
