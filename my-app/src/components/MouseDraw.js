@@ -18,7 +18,7 @@ import { RightPanel } from "./RightPanel.js";
 import axios from "axios";
 import { drawClouds } from "../d3-rendering/cloudFunctions.js";
 
-const localDevURL = "http://127.0.0.1:8000/";
+const localDevURL = "https://cluster-explainer.herokuapp.com/";
 const DEFAULT_PROMPT =
   "What is the common theme between the selected sentences?";
 

@@ -28,7 +28,7 @@ import neurips from '../datasets/neurips.json';
 
 library.add(faCheckSquare, faSquare);
 
-const localDevURL = "http://127.0.0.1:8000/";
+const localDevURL = "https://cluster-explainer.herokuapp.com/";
 
 const LoadDataCircle = ({ loadingData }) => {
   if (!loadingData) {
